@@ -1,0 +1,22 @@
+{
+  "name": "@cardvault/db",
+  "version": "0.0.0",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "license": "MIT",
+  "scripts": {
+    "lint": "eslint src/",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@cardvault/core": "*",
+    "dexie": "^4.0.8",
+    "drizzle-orm": "^0.30.10"
+  },
+  "devDependencies": {
+    "@cardvault/eslint-config": "*",
+    "@cardvault/typescript-config": "*",
+    "typescript": "^5.4.5",
+    "vitest": "^1.6.0"
+  }
+}
