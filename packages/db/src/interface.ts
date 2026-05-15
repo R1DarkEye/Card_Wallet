@@ -1,26 +1,5 @@
-import { AnyCard } from '@cardvault/core';
-
-export interface EncryptedRecord {
-  id: string;
-  type: string;
-  encrypted: string; // base64
-  iv: string; // base64
-  tag: string; // base64
-  updatedAt: string;
-  deviceId: string;
-  syncStatus: 'pending' | 'synced' | 'conflict';
-}
-
-export interface EncryptedImage {
-  id: string;
-  cardId: string;
-  side: 'front' | 'back';
-  encrypted: string;
-  iv: string;
-  tag: string;
-  updatedAt: string;
-  syncStatus: 'pending' | 'synced' | 'conflict';
-}
+import { AnyCard, EncryptedRecord, EncryptedImage } from '@cardvault/core';
+export type { EncryptedRecord, EncryptedImage };
 
 export interface DatabaseAdapter {
   // Cards

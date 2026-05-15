@@ -1,5 +1,4 @@
-import { AnyCard } from '../models';
-import { EncryptedRecord, EncryptedImage } from '../../db/src/interface';
+import { AnyCard, EncryptedRecord, EncryptedImage } from '../models';
 
 export interface SyncResult {
   upserted: number;
