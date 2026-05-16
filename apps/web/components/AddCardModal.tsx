@@ -9,16 +9,49 @@ import { ZodError } from 'zod';
 interface AddCardModalProps {
   onClose: () => void;
   onSuccess: () => void;
+  editData?: {
+    id: string;
+    type: CardType;
+    data: any;
+  };
 }
 
-export default function AddCardModal({ onClose, onSuccess }: AddCardModalProps) {
-  const [type, setType] = useState<CardType>('credit');
-  const [formData, setFormData] = useState<Record<string, string>>({
+export default function AddCardModal({ onClose, onSuccess, editData }: AddCardModalProps) {
+  const [type, setType] = useState<CardType>(editData?.type || 'credit');
+  const [formData, setFormData] = useState<Record<string, any>>(editData?.data || {
     network: 'visa',
     nickname: ''
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
+
+  // Sync edit data into state when switching between add/edit
+  useEffect(() => {
+    if (editData) {
+      setType(editData.type);
+      setFormData({
+        network: editData.data?.network || 'visa',
+        nickname: editData.data?.nickname || '',
+        ...editData.data
+      });
+      setErrors({});
+      return;
+    }
+
+    setType('credit');
+    setFormData({ network: 'visa', nickname: '' });
+    setErrors({});
+  }, [editData]);
+
+  // Re-synchronize vehicle classes for display if they are an array
+  useEffect(() => {
+    if (editData?.data?.vehicleClasses && Array.isArray(editData.data.vehicleClasses)) {
+      setFormData(prev => ({
+        ...prev,
+        vehicleClasses: editData.data.vehicleClasses.join(', ')
+      }));
+    }
+  }, [editData]);
 
   const handleInputChange = (field: string, value: string) => {
     let formattedValue = value;
@@ -39,6 +72,15 @@ export default function AddCardModal({ onClose, onSuccess }: AddCardModalProps) 
     } else if (['surname', 'givenNames', 'placeOfBirth', 'placeOfIssue'].includes(field)) {
       formattedValue = value.replace(/[^a-zA-Z\s]/g, ''); // Letters and spaces only
       formattedValue = formattedValue.replace(/(^\w|\s\w)/g, m => m.toUpperCase()); // Auto-capitalize
+    } else if (field === 'licenceNumber') {
+      formattedValue = value.toUpperCase().replace(/[^A-Z0-9\s-]/g, '');
+      formattedValue = formattedValue.replace(/\s{2,}/g, ' ').trimStart();
+    } else if (field === 'issuingRTO') {
+      formattedValue = value.toUpperCase().replace(/[^A-Z0-9\s-]/g, '');
+      formattedValue = formattedValue.replace(/\s{2,}/g, ' ').trimStart();
+    } else if (field === 'vehicleClasses') {
+      formattedValue = value.toUpperCase().replace(/[^A-Z0-9,\s/-]/g, '');
+      formattedValue = formattedValue.replace(/\s{2,}/g, ' ');
     } else if (field === 'countryCode') {
       formattedValue = value.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 3);
     } else if (field === 'type') {
@@ -46,7 +88,7 @@ export default function AddCardModal({ onClose, onSuccess }: AddCardModalProps) 
     } else if (field === 'sex') {
       const v = value.toUpperCase().replace(/[^MFX]/g, '');
       formattedValue = v.slice(0, 1);
-    } else if (['dob', 'dateOfIssue', 'dateOfExpiry'].includes(field)) {
+    } else if (['dob', 'dateOfIssue', 'dateOfExpiry', 'issueDate', 'expiryDate'].includes(field)) {
       formattedValue = value.replace(/[^0-9/]/g, '');
       if ((formattedValue.length === 2 || formattedValue.length === 5) && 
           !formattedValue.endsWith('/') && 
@@ -101,7 +143,7 @@ export default function AddCardModal({ onClose, onSuccess }: AddCardModalProps) 
     // 2. Limit lengths
     if (field === 'cvv') formattedValue = formattedValue.slice(0, 4);
     if (field === 'aadhaarNumber') formattedValue = formattedValue.slice(0, 14);
-    if (['dob', 'dateOfIssue', 'dateOfExpiry'].includes(field)) formattedValue = formattedValue.slice(0, 10);
+    if (['dob', 'dateOfIssue', 'dateOfExpiry', 'issueDate', 'expiryDate'].includes(field)) formattedValue = formattedValue.slice(0, 10);
     if (field === 'cardNumber') formattedValue = formattedValue.slice(0, 23);
     if (field === 'expiry') formattedValue = formattedValue.slice(0, 5);
 
@@ -135,12 +177,18 @@ export default function AddCardModal({ onClose, onSuccess }: AddCardModalProps) 
       }
 
       const schema = (CardSchemas as any)[type];
-      const dataToValidate = { ...formData };
+      const dataToValidate: Record<string, any> = { ...formData };
       if (dataToValidate.cardNumber) {
         dataToValidate.cardNumber = dataToValidate.cardNumber.replace(/\s/g, '');
       }
       if (dataToValidate.aadhaarNumber) {
         dataToValidate.aadhaarNumber = dataToValidate.aadhaarNumber.replace(/\s/g, '');
+      }
+      if (typeof dataToValidate.vehicleClasses === 'string') {
+        dataToValidate.vehicleClasses = dataToValidate.vehicleClasses
+          .split(',')
+          .map((item: string) => item.trim())
+          .filter(Boolean);
       }
 
       if (schema) {
@@ -151,7 +199,7 @@ export default function AddCardModal({ onClose, onSuccess }: AddCardModalProps) 
       const encrypted = await encrypt(JSON.stringify(dataToValidate), key);
 
       const record = {
-        id: uuidv4(),
+        id: editData?.id || uuidv4(),
         type,
         encrypted: encrypted.ciphertext,
         iv: encrypted.iv,
@@ -197,7 +245,7 @@ export default function AddCardModal({ onClose, onSuccess }: AddCardModalProps) 
           <div className="header-labels">
             <span className="tiny-label">CARD DETAILS</span>
             <h2>{getTypeName()}</h2>
-            <p className="subtitle">Enter your card information</p>
+            <p className="subtitle">{editData ? 'Update your card information' : 'Enter your card information'}</p>
           </div>
           <button className="btn-close" onClick={onClose}>×</button>
         </header>
@@ -205,17 +253,22 @@ export default function AddCardModal({ onClose, onSuccess }: AddCardModalProps) 
         <form onSubmit={handleSave} className="card-form">
           <div className="form-group">
             <label>Card Type</label>
-            <select value={type} onChange={(e) => {
-              setType(e.target.value as CardType);
-              setFormData({ network: 'visa' });
-              setErrors({});
-            }}>
+            <select 
+              value={type} 
+              disabled={!!editData}
+              onChange={(e) => {
+                setType(e.target.value as CardType);
+                setFormData(prev => ({ nickname: prev.nickname || '', network: 'visa' }));
+                setErrors({});
+              }}
+            >
               <option value="credit">Credit Card</option>
               <option value="debit">Debit Card</option>
               <option value="aadhaar">Aadhaar</option>
               <option value="passport">Passport</option>
               <option value="driving_licence">Driving Licence</option>
             </select>
+            {editData && <span className="helper-text">Card type cannot be changed after creation.</span>}
           </div>
 
           <FormField 
@@ -298,6 +351,23 @@ export default function AddCardModal({ onClose, onSuccess }: AddCardModalProps) 
                 <FormField label="Date of Expiry" name="dateOfExpiry" value={formData.dateOfExpiry} onChange={handleInputChange} error={errors.dateOfExpiry} placeholder="DD/MM/YYYY" />
               </div>
             </>
+          ) : type === 'driving_licence' ? (
+            <>
+              <FormField label="Full Name" name="name" value={formData.name} onChange={handleInputChange} error={errors.name} />
+              <div className="form-row">
+                <FormField label="Licence Number" name="licenceNumber" value={formData.licenceNumber} onChange={handleInputChange} error={errors.licenceNumber} placeholder="XX00 2025 1234567" />
+                <FormField label="Date of Birth" name="dob" value={formData.dob} onChange={handleInputChange} error={errors.dob} placeholder="DD/MM/YYYY" />
+              </div>
+              <FormField label="Address" name="address" value={formData.address} onChange={handleInputChange} error={errors.address} />
+              <div className="form-row">
+                <FormField label="Date of Issue" name="issueDate" value={formData.issueDate} onChange={handleInputChange} error={errors.issueDate} placeholder="DD/MM/YYYY" />
+                <FormField label="Date of Expiry" name="expiryDate" value={formData.expiryDate} onChange={handleInputChange} error={errors.expiryDate} placeholder="DD/MM/YYYY" />
+              </div>
+              <div className="form-row">
+                <FormField label="Issuing RTO" name="issuingRTO" value={formData.issuingRTO} onChange={handleInputChange} error={errors.issuingRTO} placeholder="e.g., MH12" />
+                <FormField label="Vehicle Classes" name="vehicleClasses" value={formData.vehicleClasses} onChange={handleInputChange} error={errors.vehicleClasses} placeholder="LMV, MCWG" />
+              </div>
+            </>
           ) : type === 'aadhaar' ? (
             <>
               <FormField label="Full Name" name="name" value={formData.name} onChange={handleInputChange} error={errors.name} />
@@ -309,11 +379,11 @@ export default function AddCardModal({ onClose, onSuccess }: AddCardModalProps) 
 
           <div className="encryption-notice">
             <span className="lock-icon">🔒</span>
-            <p>All data is encrypted with AES-256 and stored locally on your device</p>
+            <p>All data is encrypted with AES-256 and stored securely in your vault</p>
           </div>
 
           <button className="btn-save" type="submit" disabled={isSaving}>
-            {isSaving ? 'Saving...' : 'Save Card'}
+            {isSaving ? 'Saving...' : editData ? 'Update Card' : 'Save Card'}
           </button>
         </form>
       </div>
@@ -377,6 +447,16 @@ export default function AddCardModal({ onClose, onSuccess }: AddCardModalProps) 
         select {
           background: #2a2a2a; border: 1px solid #444; padding: 14px;
           border-radius: 10px; color: white; font-size: 1rem; width: 100%;
+        }
+        select:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+          background: #222;
+        }
+        .helper-text {
+          font-size: 0.75rem;
+          color: #888;
+          margin-top: 4px;
         }
       `}</style>
     </div>

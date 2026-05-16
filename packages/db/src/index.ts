@@ -1,2 +1,9 @@
 export * from './interface';
-export * from './web';
+export * from './supabase';
+export {
+	supabase,
+	supabaseConfigured,
+	setActiveUserId,
+	setSupabaseAuthToken,
+	getActiveUserId
+} from './supabaseClient';

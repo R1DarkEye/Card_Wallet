@@ -1,0 +1,1 @@
+Add the RLS policy for authenticated users
