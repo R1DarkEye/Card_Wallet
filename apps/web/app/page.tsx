@@ -22,7 +22,7 @@ let saveAs: any;
 
 const loadBackupLibs = async () => {
   if (!jsPDF) {
-    const jspdfModule = await import("jspdf");
+    const jspdfModule = await import("jspdf/dist/jspdf.es.min.js");
     jsPDF = jspdfModule.default || jspdfModule;
     autoTable = (await import("jspdf-autotable")).default;
     JSZip = (await import("jszip")).default;
