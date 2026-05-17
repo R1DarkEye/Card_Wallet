@@ -135,9 +135,11 @@ export default function AddCardModal({ onClose, onSuccess, editData }: AddCardMo
       if (formattedValue.length === 2 && !formattedValue.includes('/') && value.length > (prevFormData[field]?.length || 0)) {
         formattedValue += '/';
       }
-    } else if (['cardholderName', 'name', 'nickname', 'bankName'].includes(field)) {
+    } else if (['cardholderName', 'name', 'nickname', 'bankName', 'provider', 'policyName', 'subscriberName'].includes(field)) {
       formattedValue = value.replace(/[^a-zA-Z\s]/g, '');
       formattedValue = formattedValue.replace(/(^\w|\s\w)/g, m => m.toUpperCase());
+    } else if (['policyNumber', 'groupNumber', 'contactNumber'].includes(field)) {
+      formattedValue = value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
     }
 
     // 2. Limit lengths
@@ -234,6 +236,7 @@ export default function AddCardModal({ onClose, onSuccess, editData }: AddCardMo
       case 'aadhaar': return 'Aadhaar';
       case 'passport': return 'Passport';
       case 'driving_licence': return 'Driving Licence';
+      case 'insurance': return 'Insurance Card';
       default: return 'Card';
     }
   };
@@ -267,6 +270,7 @@ export default function AddCardModal({ onClose, onSuccess, editData }: AddCardMo
               <option value="aadhaar">Aadhaar</option>
               <option value="passport">Passport</option>
               <option value="driving_licence">Driving Licence</option>
+              <option value="insurance">Insurance Card</option>
             </select>
             {editData && <span className="helper-text">Card type cannot be changed after creation.</span>}
           </div>
@@ -374,6 +378,21 @@ export default function AddCardModal({ onClose, onSuccess, editData }: AddCardMo
               <FormField label="Aadhaar Number" name="aadhaarNumber" value={formData.aadhaarNumber} onChange={handleInputChange} error={errors.aadhaarNumber} placeholder="12 digits" />
               <FormField label="Date of Birth" name="dob" value={formData.dob} onChange={handleInputChange} error={errors.dob} placeholder="DD/MM/YYYY" />
               <FormField label="Full Address" name="address" value={formData.address} onChange={handleInputChange} error={errors.address} />
+            </>
+          ) : type === 'insurance' ? (
+            <>
+              <FormField label="Insurance Provider" name="provider" value={formData.provider} onChange={handleInputChange} error={errors.provider} placeholder="e.g., Blue Cross" />
+              <div className="form-row">
+                <FormField label="Policy Number" name="policyNumber" value={formData.policyNumber} onChange={handleInputChange} error={errors.policyNumber} placeholder="XYZ123456" />
+                <FormField label="Group Number" name="groupNumber" value={formData.groupNumber} onChange={handleInputChange} error={errors.groupNumber} placeholder="Optional" />
+              </div>
+              <FormField label="Policy Name" name="policyName" value={formData.policyName} onChange={handleInputChange} error={errors.policyName} placeholder="Optional" />
+              <FormField label="Subscriber Name" name="subscriberName" value={formData.subscriberName} onChange={handleInputChange} error={errors.subscriberName} />
+              <div className="form-row">
+                <FormField label="Effective Date" name="effectiveDate" value={formData.effectiveDate} onChange={handleInputChange} error={errors.effectiveDate} placeholder="DD/MM/YYYY" />
+                <FormField label="Expiry Date" name="expiryDate" value={formData.expiryDate} onChange={handleInputChange} error={errors.expiryDate} placeholder="DD/MM/YYYY" />
+              </div>
+              <FormField label="Contact Number" name="contactNumber" value={formData.contactNumber} onChange={handleInputChange} error={errors.contactNumber} placeholder="Customer Service" />
             </>
           ) : null}
 

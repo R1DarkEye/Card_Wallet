@@ -1,15 +1,10 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, Fraunces } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
-const spaceGrotesk = Space_Grotesk({
+const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans"
-});
-
-const fraunces = Fraunces({
-  subsets: ["latin"],
-  variable: "--font-display"
 });
 
 export const metadata: Metadata = {
@@ -27,7 +22,7 @@ export default function RootLayout({
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
       </head>
-      <body className={`${spaceGrotesk.variable} ${fraunces.variable}`}>
+      <body className={`${inter.variable}`}>
         {children}
       </body>
     </html>

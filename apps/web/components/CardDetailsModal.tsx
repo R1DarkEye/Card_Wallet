@@ -51,6 +51,8 @@ export default function CardDetailsModal({ card, onClose }: CardDetailsModalProp
         return { background: 'linear-gradient(135deg, #1e3a8a, #172554)', color: '#ffffff' };
       case 'driving_licence':
         return { background: 'linear-gradient(135deg, #fffbeb, #fef3c7)', color: '#92400e' };
+      case 'insurance':
+        return { background: 'linear-gradient(135deg, #ecfdf5, #d1fae5)', color: '#065f46' };
       default:
         return { background: '#1e293b', color: '#ffffff' };
     }
@@ -76,14 +78,14 @@ export default function CardDetailsModal({ card, onClose }: CardDetailsModalProp
               </div>
 
               <div className="card-number-section" onClick={toggleReveal}>
-                <p className="card-number">{formatCardNumber(data.cardNumber || data.aadhaarNumber || data.passportNumber || data.licenceNumber)}</p>
+                <p className="card-number">{formatCardNumber(data.cardNumber || data.aadhaarNumber || data.passportNumber || data.licenceNumber || data.policyNumber)}</p>
                 <span className="tap-hint">{isRevealed ? 'Tap to hide' : 'Tap to reveal'}</span>
               </div>
 
               <div className="card-bottom">
                 <div className="card-holder">
                   <span className="field-label">NAME</span>
-                  <p>{data.nickname || data.givenNames || 'CARD HOLDER'}</p>
+                  <p>{data.nickname || data.subscriberName || data.givenNames || 'CARD HOLDER'}</p>
                 </div>
                 {data.expiry && (
                   <div className="card-expiry">
@@ -97,7 +99,7 @@ export default function CardDetailsModal({ card, onClose }: CardDetailsModalProp
 
           <div className="data-grid">
              {Object.entries(data).map(([key, value]) => {
-                const hiddenFields = ['nickname', 'network', 'cardNumber', 'aadhaarNumber', 'passportNumber', 'licenceNumber', 'cvv'];
+                const hiddenFields = ['nickname', 'network', 'cardNumber', 'aadhaarNumber', 'passportNumber', 'licenceNumber', 'policyNumber', 'cvv'];
                 if (hiddenFields.includes(key)) return null;
                 return (
                   <div key={key} className="data-item">

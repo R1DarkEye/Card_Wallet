@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const CardTypeSchema = z.enum(['aadhaar', 'passport', 'credit', 'debit', 'driving_licence', 'generic']);
+export const CardTypeSchema = z.enum(['aadhaar', 'passport', 'credit', 'debit', 'driving_licence', 'insurance', 'generic']);
 export type CardType = z.infer<typeof CardTypeSchema>;
 
 export const BaseCardSchema = z.object({
@@ -59,14 +59,26 @@ export const DrivingLicenceSchema = z.object({
   vehicleClasses: z.array(z.string()),
 });
 
+export const InsuranceSchema = z.object({
+  provider: z.string().min(1, 'Provider is required'),
+  policyNumber: z.string().min(1, 'Policy number is required'),
+  policyName: z.string().optional(),
+  subscriberName: z.string().min(1, 'Subscriber name is required'),
+  groupNumber: z.string().optional(),
+  effectiveDate: z.string().regex(/^\d{2}\/\d{2}\/\d{4}$/, 'Use DD/MM/YYYY format'),
+  expiryDate: z.string().regex(/^\d{2}\/\d{2}\/\d{4}$/, 'Use DD/MM/YYYY format').optional(),
+  contactNumber: z.string().optional(),
+});
+
 export type BaseCard = z.infer<typeof BaseCardSchema>;
 export type AadhaarCard = BaseCard & z.infer<typeof AadhaarSchema> & { type: 'aadhaar' };
 export type PassportCard = BaseCard & z.infer<typeof PassportSchema> & { type: 'passport' };
 export type PaymentCard = BaseCard & z.infer<typeof PaymentCardSchema> & { type: 'credit' | 'debit' };
 export type DrivingLicence = BaseCard & z.infer<typeof DrivingLicenceSchema> & { type: 'driving_licence' };
+export type InsuranceCard = BaseCard & z.infer<typeof InsuranceSchema> & { type: 'insurance' };
 export type GenericCard = BaseCard & { type: 'generic', title: string; fields: { label: string; value: string }[] };
 
-export type AnyCard = AadhaarCard | PassportCard | PaymentCard | DrivingLicence | GenericCard;
+export type AnyCard = AadhaarCard | PassportCard | PaymentCard | DrivingLicence | InsuranceCard | GenericCard;
 
 export const CardSchemas = {
   aadhaar: AadhaarSchema,
@@ -74,6 +86,7 @@ export const CardSchemas = {
   credit: PaymentCardSchema,
   debit: PaymentCardSchema,
   driving_licence: DrivingLicenceSchema,
+  insurance: InsuranceSchema,
 };
 
 export interface EncryptedRecord {
