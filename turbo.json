@@ -5,7 +5,11 @@
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**"]
+      "outputs": [".next/**", "!.next/cache/**"],
+      "env": [
+        "JWT_PRIVATE_KEY",
+        "JWT_KEY_ID"
+      ]
     },
     "lint": {
       "dependsOn": ["^lint"]
