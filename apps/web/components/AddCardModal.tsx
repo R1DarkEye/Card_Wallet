@@ -424,7 +424,7 @@ export default function AddCardModal({ onClose, onSuccess, editData }: AddCardMo
                     placeholder="e.g. HDFC Bank"
                   />
                 </>
-              ) : type === 'passport' || type === 'passport' ? (
+              ) : type === 'passport' ? (
                 <>
                   <div className="form-row">
                     <FormField label="Type" name="type" value={formData.type || 'P'} onChange={handleInputChange} error={errors.type} placeholder="P" />
@@ -449,7 +449,7 @@ export default function AddCardModal({ onClose, onSuccess, editData }: AddCardMo
                     <FormField label="Date of Expiry" name="dateOfExpiry" value={formData.dateOfExpiry} onChange={handleInputChange} error={errors.dateOfExpiry} placeholder="DD/MM/YYYY" />
                   </div>
                 </>
-              ) : type === 'driving_licence' || type === 'driving_licence' ? (
+              ) : type === 'driving_licence' ? (
                 <>
                   <FormField label="Full Name" name="name" value={formData.name} onChange={handleInputChange} error={errors.name} />
                   <div className="form-row">
