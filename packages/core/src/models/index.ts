@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const CardTypeSchema = z.enum(['aadhaar', 'passport', 'credit', 'debit', 'driving_licence', 'insurance', 'generic']);
+export const CardTypeSchema = z.enum(['aadhaar', 'passport', 'credit', 'debit', 'driving_licence', 'insurance', 'health', 'other', 'other_license']);
 export type CardType = z.infer<typeof CardTypeSchema>;
 
 export const BaseCardSchema = z.object({
@@ -70,15 +70,32 @@ export const InsuranceSchema = z.object({
   contactNumber: z.string().optional(),
 });
 
+export const HealthCardSchema = z.object({
+  provider: z.string().min(1, 'Provider is required'),
+  memberName: z.string().min(1, 'Member name is required'),
+  memberId: z.string().min(1, 'Member ID is required'),
+  bloodGroup: z.string().optional(),
+  emergencyContact: z.string().optional(),
+  validUntil: z.string().optional(),
+});
+
+export const OtherCardSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  identifier: z.string().min(1, 'ID/Number is required'),
+  details: z.string().optional(),
+  expiryDate: z.string().optional(),
+});
+
 export type BaseCard = z.infer<typeof BaseCardSchema>;
 export type AadhaarCard = BaseCard & z.infer<typeof AadhaarSchema> & { type: 'aadhaar' };
 export type PassportCard = BaseCard & z.infer<typeof PassportSchema> & { type: 'passport' };
 export type PaymentCard = BaseCard & z.infer<typeof PaymentCardSchema> & { type: 'credit' | 'debit' };
 export type DrivingLicence = BaseCard & z.infer<typeof DrivingLicenceSchema> & { type: 'driving_licence' };
 export type InsuranceCard = BaseCard & z.infer<typeof InsuranceSchema> & { type: 'insurance' };
-export type GenericCard = BaseCard & { type: 'generic', title: string; fields: { label: string; value: string }[] };
+export type HealthCard = BaseCard & z.infer<typeof HealthCardSchema> & { type: 'health' };
+export type OtherCard = BaseCard & z.infer<typeof OtherCardSchema> & { type: 'other' | 'other_license' };
 
-export type AnyCard = AadhaarCard | PassportCard | PaymentCard | DrivingLicence | InsuranceCard | GenericCard;
+export type AnyCard = AadhaarCard | PassportCard | PaymentCard | DrivingLicence | InsuranceCard | HealthCard | OtherCard;
 
 export const CardSchemas = {
   aadhaar: AadhaarSchema,
@@ -87,6 +104,9 @@ export const CardSchemas = {
   debit: PaymentCardSchema,
   driving_licence: DrivingLicenceSchema,
   insurance: InsuranceSchema,
+  health: HealthCardSchema,
+  other: OtherCardSchema,
+  other_license: OtherCardSchema,
 };
 
 export interface EncryptedRecord {
