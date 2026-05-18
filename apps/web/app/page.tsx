@@ -7,6 +7,7 @@ import AddCardModal from "../components/AddCardModal";
 import CardDetailsModal from "../components/CardDetailsModal";
 import { DashboardSkeleton } from "../components/Skeletons";
 import { SettingsContent } from "./settings/page";
+import ProfilePage from "./profile/page";
 import {
   db,
   supabase,
@@ -51,7 +52,7 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"dashboard" | "settings">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "settings" | "profile">("dashboard");
   const { setVaultOpen, isOpen, lockVault } = useVaultStore();
   const mnemonicStorageKey = "cardvault_mnemonic";
 
@@ -393,7 +394,7 @@ export default function Home() {
               <div className="nav-item">
                 <span className="nav-icon">🔔</span> Alerts <span className="badge">3</span>
               </div>
-              <div className="nav-item">
+              <div className={`nav-item ${activeTab === "profile" ? "active" : ""}`} onClick={() => setActiveTab("profile")}>
                 <span className="nav-icon">👤</span> Profile
               </div>
               <div className={`nav-item ${activeTab === "settings" ? "active" : ""}`} onClick={() => setActiveTab("settings")}>
@@ -479,6 +480,8 @@ export default function Home() {
                 onBackup={handleBackup}
                 onSignOut={handleSignOut}
               />
+            ) : activeTab === "profile" ? (
+              <ProfilePage />
             ) : (
               <>
                 <div className="page-intro">
