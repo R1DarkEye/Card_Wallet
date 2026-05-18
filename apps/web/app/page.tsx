@@ -5,6 +5,7 @@ import { generateMnemonic, decrypt, vault, validateMnemonic } from "@cardvault/c
 import { useVaultStore } from "../store/useVaultStore";
 import AddCardModal from "../components/AddCardModal";
 import CardDetailsModal from "../components/CardDetailsModal";
+import { Toast, useToast } from "../components/Toast";
 import { DashboardSkeleton } from "../components/Skeletons";
 import { SettingsContent } from "./settings/page";
 import ProfilePage from "./profile/page";
@@ -54,6 +55,7 @@ export default function Home() {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"dashboard" | "settings" | "profile">("dashboard");
   const { setVaultOpen, isOpen, lockVault } = useVaultStore();
+  const { showToast, ToastElement } = useToast();
   const mnemonicStorageKey = "cardvault_mnemonic";
 
   useEffect(() => {
@@ -257,14 +259,14 @@ export default function Home() {
       setActiveMenu(null);
     } catch (error) {
       console.error("Delete failed:", error);
-      alert("Failed to delete card");
+      showToast("Failed to delete card", "error");
       setIsLoadingCards(false);
     }
   };
 
   const handleBackup = async () => {
     if (cards.length === 0) {
-      alert("No cards to backup.");
+      showToast("No cards to backup.", "info");
       return;
     }
 
@@ -330,7 +332,7 @@ export default function Home() {
       saveAs(content, `${folderName}.zip`);
     } catch (error) {
       console.error("Backup failed:", error);
-      alert("Failed to generate backup.");
+      showToast("Failed to generate backup.", "error");
     }
   };
 
@@ -865,6 +867,7 @@ export default function Home() {
           .empty-state-card p { color: #64748b; font-size: 14px; margin-bottom: 24px; }
           .btn-primary-add { background: #2563eb; color: #fff; border: none; padding: 10px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; }
         `}</style>
+        {ToastElement}
       </div>
     );
   }
@@ -881,7 +884,7 @@ export default function Home() {
       await activateVaultSession(generatedMnemonic);
       setStep("welcome");
     } catch (e: any) {
-      alert("Setup failed: " + e.message);
+      showToast("Setup failed: " + e.message, "error");
     } finally {
       setIsInitializing(false);
     }
@@ -911,6 +914,7 @@ export default function Home() {
             <p>MIT Licensed • Open Source • No Cloud Storage</p>
           </div>
         </div>
+        {ToastElement}
 
         <style jsx>{`
           .onboarding-container { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; background: radial-gradient(circle at top right, #1e1b4b, #0f172a); }
@@ -980,8 +984,8 @@ export default function Home() {
 
           <div className="mnemonic-grid">
             {generatedMnemonic.split(" ").map((word, i) => (
-              <div key={i} className="mnemonic-word">
-                <span className="mnemonic-index">{i + 1}</span>
+              <div key={i} className="mnemonic-word group hover:bg-white/10 transition-all duration-200">
+                <span className="mnemonic-index group-hover:bg-blue-500/20 group-hover:text-blue-400">{i + 1}</span>
                 {word}
               </div>
             ))}
@@ -994,12 +998,13 @@ export default function Home() {
             className="btn-secondary copy-btn"
             onClick={() => {
               navigator.clipboard.writeText(generatedMnemonic);
-              alert('Mnemonic copied to clipboard!');
+              showToast('Mnemonic copied to clipboard!', 'success');
             }}
           >
             Copy to Clipboard
           </button>
         </div>
+        {ToastElement}
 
         <style jsx>{`
           .onboarding-container {
@@ -1107,7 +1112,7 @@ export default function Home() {
                 if (restoreMnemonic.trim().toLowerCase() === generatedMnemonic) {
                     await handleConfirm();
                 } else {
-                    alert("Phrase does not match. Please try again.");
+                    showToast("Phrase does not match. Please try again.", "error");
                 }
             }} 
             disabled={isInitializing}
@@ -1115,6 +1120,7 @@ export default function Home() {
             {isInitializing ? "Verifying..." : "Finish Setup"}
           </button>
         </div>
+        {ToastElement}
         <style jsx>{`
           .onboarding-container { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #0f172a; }
           .onboarding-card { max-width: 520px; background: rgba(255,255,255,0.03); padding: 40px; border-radius: 32px; }

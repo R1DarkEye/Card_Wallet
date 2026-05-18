@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { encrypt, vault, CardType, CardSchemas } from '@cardvault/core';
 import { db } from '@cardvault/db';
+import { useToast } from './Toast';
 import { v4 as uuidv4 } from 'uuid';
 import { ZodError } from 'zod';
 
@@ -26,6 +27,7 @@ export default function AddCardModal({ onClose, onSuccess, editData }: AddCardMo
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [prevFormData, setPrevFormData] = useState<Record<string, any>>(editData?.data || {});
+  const { showToast, ToastElement } = useToast();
 
   // Update prevFormData whenever formData changes
   useEffect(() => {
@@ -231,7 +233,10 @@ export default function AddCardModal({ onClose, onSuccess, editData }: AddCardMo
       };
 
       await db.saveCard(record);
-      onSuccess();
+      showToast(editData ? 'Card updated successfully' : 'Card saved successfully', 'success');
+      setTimeout(() => {
+        onSuccess();
+      }, 500);
     } catch (error: any) {
       if (error.name === 'ZodError') {
         const fieldErrors: Record<string, string> = {};
@@ -239,9 +244,10 @@ export default function AddCardModal({ onClose, onSuccess, editData }: AddCardMo
           if (err.path[0]) fieldErrors[err.path[0] as string] = err.message;
         });
         setErrors(fieldErrors);
+        showToast('Please fix the errors in the form', 'error');
       } else {
         console.error('Save failed:', error);
-        alert('An unexpected error occurred');
+        showToast('An unexpected error occurred', 'error');
       }
     } finally {
       setIsSaving(false);
@@ -470,6 +476,31 @@ export default function AddCardModal({ onClose, onSuccess, editData }: AddCardMo
                 <>
                   <FormField label="Full Name" name="name" value={formData.name} onChange={handleInputChange} error={errors.name} />
                   <FormField label="Aadhaar Number" name="aadhaarNumber" value={formData.aadhaarNumber} onChange={handleInputChange} error={errors.aadhaarNumber} placeholder="12 digits" />
+                  <div className="form-group">
+                    <label>Gender</label>
+                    <select 
+                      value={formData.gender || ''} 
+                      onChange={(e) => handleInputChange('gender', e.target.value)}
+                      className={errors.gender ? 'input-error' : ''}
+                      style={{
+                        background: '#f8fafc',
+                        border: '2px solid #f1f5f9',
+                        padding: '14px 18px',
+                        borderRadius: '12px',
+                        color: '#1e293b',
+                        fontSize: '15px',
+                        width: '100%',
+                        transition: 'all 0.2s',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <option value="">Select Gender</option>
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
+                      <option value="other">Other</option>
+                    </select>
+                    {errors.gender && <span className="error-text" style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>{errors.gender}</span>}
+                  </div>
                   <FormField label="Date of Birth" name="dob" value={formData.dob} onChange={handleInputChange} error={errors.dob} placeholder="DD/MM/YYYY" />
                   <FormField label="Full Address" name="address" value={formData.address} onChange={handleInputChange} error={errors.address} />
                 </>
@@ -535,6 +566,7 @@ export default function AddCardModal({ onClose, onSuccess, editData }: AddCardMo
                 </button>
               </div>
             </form>
+            {ToastElement}
           </div>
         )}
 
